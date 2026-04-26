@@ -14,6 +14,6 @@ namespace Domain
         public int Duration { get; set; }
 
         public bool IsDebuff {  get; set; }
-        EffectType Type { get; set; }
+        public EffectType Type { get; set; }
     }
 }

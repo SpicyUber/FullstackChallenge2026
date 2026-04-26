@@ -26,6 +26,6 @@ namespace Domain
         public CharacterType Type { get; set; }
         public bool IsHero { get; set; }
 
-        ICollection<CharacterMove> Moves { get; set; } = [];
+        public ICollection<CharacterMove> Moves { get; set; } = [];
     }
 }

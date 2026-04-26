@@ -2,6 +2,6 @@
 {
     public enum CharacterType
     {
-        KNIGHT, WITCH, SPIDER, DRAGON, GOBLIN_WARRIOR, GOBLIN_MAGE
+        KNIGHT, WITCH, SPIDER, DRAGON, GOBLIN_WARRIOR, GOBLIN_MAGE, WIZARD
     }
 }

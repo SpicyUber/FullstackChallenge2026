@@ -1,4 +1,8 @@
 
+using Infrastructure.Persistence;
+using Infrastructure.Persistence.UnitOfWork;
+using Microsoft.EntityFrameworkCore;
+
 namespace Server
 {
     public class Program
@@ -6,13 +10,17 @@ namespace Server
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             // Add services to the container.
-
+            
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            var connectionString =
+            builder.Configuration.GetConnectionString("DefaultConnection");
+            builder.Services.AddDbContext<FullstackQuestDbContext>(options =>
+            options.UseSqlServer(connectionString));
 
             var app = builder.Build();
 

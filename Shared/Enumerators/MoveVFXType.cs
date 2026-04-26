@@ -8,6 +8,6 @@ namespace Shared.Enumerators
 {
     public enum MoveVFXType
     {
-        NONE, SLASH, SPELL, BITE, PUNCH, PROJECTILE
+        NONE, SLASH, SPELL, BITE, PUNCH, PROJECTILE, BEAM
     }
 }
