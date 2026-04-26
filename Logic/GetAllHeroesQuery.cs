@@ -16,7 +16,7 @@ namespace Logic
         {
         }
 
-        protected override async Task<List<CharacterDto>> ExecuteQuery(IUnitOfWork _uow, object parameters)
+        protected override async Task<List<CharacterDto>> ExecuteQuery(object parameters)
         {
             var heroes = await _uow.CharacterRepository.Query()
             .Where(c => c.IsHero)

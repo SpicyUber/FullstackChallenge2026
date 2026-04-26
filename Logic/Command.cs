@@ -15,11 +15,11 @@ namespace Logic
 
         public override async Task<T> Execute(Q? parameters)
         {
-            var result = await ExecuteCommand(_uow, parameters);
+            var result = await ExecuteCommand(parameters);
             await _uow.Save();
             return result;
         }
 
-        protected abstract Task<T> ExecuteCommand(IUnitOfWork _uow, Q? parameters);
+        protected abstract Task<T> ExecuteCommand(Q? parameters);
     }
 }

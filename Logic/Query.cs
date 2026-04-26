@@ -15,10 +15,10 @@ namespace Logic
 
         public override async Task<T> Execute(Q? parameters = null)
         {
-            var result = await ExecuteQuery(_uow, parameters);
+            var result = await ExecuteQuery(parameters);
             return result;
         }
 
-        protected abstract Task<T> ExecuteQuery(IUnitOfWork _uow, Q? parameters);
+        protected abstract Task<T> ExecuteQuery(Q? parameters);
     }
 }
