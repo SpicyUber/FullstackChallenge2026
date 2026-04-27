@@ -1,11 +1,6 @@
 ﻿using Shared.Enumerators;
-using System;
+using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace Shared.DataTransferObjects
 {
@@ -23,7 +18,7 @@ namespace Shared.DataTransferObjects
         public int Magic { get; private set; }
         public CharacterType Type { get; private set; }
 
-        public List<MoveDto> Moves { get; private set; } = new();
+        public List<MoveDto> Moves { get; private set; } = new List<MoveDto>();
 
         [JsonConstructor]
         public CharacterDto(

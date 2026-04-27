@@ -1,5 +1,5 @@
 ﻿using Shared.Enumerators;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace Shared.DataTransferObjects
 {
