@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 599e286669358e042a5c51aede7641ec, type: 3}
+  m_Name: Anvil
+  m_EditorClassIdentifier: Assembly-CSharp::SoundEffectSO
+  _clip: {fileID: 8300000, guid: 42f6522970ad5cb43a8984bf786454e6, type: 3}
+  _soundType: 13
