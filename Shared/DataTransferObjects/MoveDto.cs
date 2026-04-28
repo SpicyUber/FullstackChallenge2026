@@ -29,26 +29,26 @@ namespace Shared.DataTransferObjects
             long id,
             string name,
             DamageType damageType, 
-            int damage,
-            int selfHealingAmount, 
+            int damageScaling,
+            int selfHealingScaling, 
             int healthCost, 
             int manaCost, 
             Element element, 
             EffectDto effect, 
-            bool isVFXSelfCast,
+            bool isVFXAndEffectSelfCast,
             MoveVFXType vfxType, 
             MoveSFXType sfxType)
         {
             Id = id;
             Name = name;
             DamageType = damageType;
-            DamageScaling = damage;
-            SelfHealingScaling = selfHealingAmount;
+            DamageScaling = damageScaling;
+            SelfHealingScaling = selfHealingScaling;
             HealthCost = healthCost;
             ManaCost = manaCost;
             Element = element;
             Effect = effect;
-            IsVFXAndEffectSelfCast = isVFXSelfCast;
+            IsVFXAndEffectSelfCast = isVFXAndEffectSelfCast;
             VFXType = vfxType;
             SFXType = sfxType;
         }
