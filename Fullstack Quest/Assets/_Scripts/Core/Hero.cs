@@ -9,17 +9,17 @@ public class Hero : BaseCharacter
 
     public ItemDto[] Items { get; private set; } = new ItemDto[HeroItemSlots];
 
-    public override int Attack => CharacterInfo.Attack
+    public override int Attack => Mathf.Max(0,CharacterInfo.Attack
         + (StatsUtils.AttackLevelScaling * GameManager.Instance.HeroAttackLevel)
-        + GetEffectValue(EffectType.MODIFY_ATTACK) + Items.Sum(dto => dto?.AttackDelta ?? 0);
+        + GetEffectValue(EffectType.MODIFY_ATTACK) + Items.Sum(dto => dto?.AttackDelta ?? 0));
 
-    public override int Defense => CharacterInfo.Defense
+    public override int Defense => Mathf.Max(0, CharacterInfo.Defense
         + (StatsUtils.DefenseLevelScaling * GameManager.Instance.HeroDefenseLevel)
-        + GetEffectValue(EffectType.MODIFY_DEFENSE) + Items.Sum(dto => dto?.DefenseDelta ?? 0);
+        + GetEffectValue(EffectType.MODIFY_DEFENSE) + Items.Sum(dto => dto?.DefenseDelta ?? 0));
 
-    public override int Magic => CharacterInfo.Magic
+    public override int Magic => Mathf.Max(0, CharacterInfo.Magic
         + (StatsUtils.MagicLevelScaling * GameManager.Instance.HeroMagicLevel)
-        + GetEffectValue(EffectType.MODIFY_MAGIC) + Items.Sum(dto => dto?.MagicDelta ?? 0);
+        + GetEffectValue(EffectType.MODIFY_MAGIC) + Items.Sum(dto => dto?.MagicDelta ?? 0));
 
     public override int Health => CharacterInfo.Health
         + (StatsUtils.HealthLevelScaling * GameManager.Instance.HeroHealthLevel)
@@ -29,11 +29,11 @@ public class Hero : BaseCharacter
         + (StatsUtils.ManaLevelScaling * GameManager.Instance.HeroManaLevel)
         + Items.Sum(dto => dto?.ManaDelta ?? 0);
 
+    protected override bool IsMyTurn => GameManager.Instance.BattleTurnState == TurnState.HERO;
+
     protected override void InitializeSpecific(CharacterDto characterDto)
     {
         _spriteRenderer.flipX = true;
-
-        CastMove(Moves[0]);
     }
 
     protected override void OnDeath() => BattleEvents.InvokePlayerDied();
@@ -42,14 +42,16 @@ public class Hero : BaseCharacter
     {
         GameEvents.HeroSelected -= Initialize;
         GameEvents.HeroBoughtUpgrade -= ResetEffectsAndResources;
-        BattleEvents.HeroAttacked += TakeDamageAndApplyEffects;
+        BattleEvents.HeroWasAttacked -= TakeDamageAndApplyEffects;
+        BattleEvents.PlayerPickedMove -= CastMoveWithId;
     }
 
     protected override void OnEnableSpecific()
     {
         GameEvents.HeroSelected += Initialize;
         GameEvents.HeroBoughtUpgrade += ResetEffectsAndResources;
-        BattleEvents.HeroAttacked -= TakeDamageAndApplyEffects;
+        BattleEvents.HeroWasAttacked += TakeDamageAndApplyEffects;
+        BattleEvents.PlayerPickedMove += CastMoveWithId;
     }
 
 }

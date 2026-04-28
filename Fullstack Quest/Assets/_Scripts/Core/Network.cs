@@ -9,7 +9,7 @@ public class Network : MonoBehaviour
 {
     [SerializeField] private NetworkConfigSO _serverData;
 
-    public long EnemyMoveId { get; private set; } = -1;
+    public long RecommendedMoveId { get; private set; } = -1;
     public List<ItemDto> Shop { get; private set; } = new();
 
     public EncounterTreeNodeDto EncounterTree { get; private set; } = null;
@@ -19,10 +19,10 @@ public class Network : MonoBehaviour
 
     private void Start()
     {
-        StartCoroutine(GetShop());
+       /* StartCoroutine(GetShop());
         StartCoroutine(GetMove(new(4, 2, 200, 200, 200)));
         StartCoroutine(GetEncounterTree());
-        StartCoroutine(GetHeroes());
+        StartCoroutine(GetHeroes());*/
     }
 
     public IEnumerator GetShop()
@@ -52,7 +52,7 @@ public class Network : MonoBehaviour
             if(!LastRequestSuccess)
                 yield break;
 
-            EnemyMoveId = JsonConvert.DeserializeObject<long>(request.downloadHandler.text);
+            RecommendedMoveId = JsonConvert.DeserializeObject<long>(request.downloadHandler.text);
 
             Debug.Log("recieved\n" + request.downloadHandler.text);
         }

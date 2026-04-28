@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 884768b212d0eb444a3b84ef90c5714f, type: 3}
+  m_Name: Modify Magic
+  m_EditorClassIdentifier: Assembly-CSharp::BuffSpriteSO
+  _buffSprite: {fileID: 21300000, guid: 592362c12d7b9a5419d4a31434a87322, type: 3}
+  _debuffSprite: {fileID: 21300000, guid: b2cc1f40a164c254999abfd6504aa8d1, type: 3}
+  _type: 2

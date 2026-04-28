@@ -23,11 +23,15 @@ public abstract class BaseCharacter : MonoBehaviour
 
     public List<(EffectDto, int)> Effects { get; private set; } = new();
 
+    public event Action AppliedEffectTick;
+
     public abstract int Attack { get; }
     public abstract int Defense { get; }
     public abstract int Magic { get; }
     public abstract int Health { get; }
     public abstract int Mana { get; }
+
+    protected abstract bool IsMyTurn { get; }
 
     protected abstract void InitializeSpecific(CharacterDto characterDto);
 
@@ -41,8 +45,7 @@ public abstract class BaseCharacter : MonoBehaviour
     {
         _healthComponent.ResourceEmpty += OnDeath;
         BattleEvents.BattleStarted += ResetEffectsAndResources;
-        BattleEvents.HeroTurnStarted += ApplyEffectTick;
-        BattleEvents.MonsterTurnStarted += ApplyEffectTick;
+        BattleEvents.TurnStarted += ApplyEffectTick;
         BattleEvents.MonsterDied += Hide;
         BattleEvents.PlayerDied += Hide;
         BattleEvents.BattleStarted += Show;
@@ -54,8 +57,7 @@ public abstract class BaseCharacter : MonoBehaviour
     {
         _healthComponent.ResourceEmpty -= OnDeath;
         BattleEvents.BattleStarted -= ResetEffectsAndResources;
-        BattleEvents.HeroTurnStarted -= ApplyEffectTick;
-        BattleEvents.MonsterTurnStarted -= ApplyEffectTick;
+        BattleEvents.TurnStarted -= ApplyEffectTick;
         BattleEvents.MonsterDied -= Hide;
         BattleEvents.PlayerDied -= Hide;
         BattleEvents.BattleStarted -= Show;
@@ -120,6 +122,8 @@ public abstract class BaseCharacter : MonoBehaviour
             else
                 Effects[i] = (effect, duration - 1);
         }
+
+        AppliedEffectTick?.Invoke();
     }
 
     private void ApplyHealthBuffs()
@@ -146,7 +150,7 @@ public abstract class BaseCharacter : MonoBehaviour
                 finalDamage = 0;
                 break;
             case DamageType.PHYSICAL:
-                finalDamage = Mathf.Max(0, damageContext.DamageBeforeDefenseApplied - Defense);
+                finalDamage = damageContext.DamageBeforeDefenseApplied - Defense;
                 break;
             default:
                 finalDamage = damageContext.DamageBeforeDefenseApplied;
@@ -154,9 +158,25 @@ public abstract class BaseCharacter : MonoBehaviour
         }
 
         if(damageContext.Effect != null)
-            Effects.Add((damageContext.Effect, damageContext.Effect.Duration));
+            AddEffectUnique(damageContext.Effect);
 
-        _healthComponent.TakeResource(finalDamage);
+
+        _healthComponent.TakeResource(Mathf.Max(0,finalDamage));
+
+    }
+
+    private void AddEffectUnique(EffectDto effect)
+    {
+        for(int i = 0; i < Effects.Count; i++)
+        {
+            if(Effects[i].Item1.Type == effect.Type)
+            {
+                Effects[i] = (effect, effect.Duration);
+                return;
+            }
+        }
+
+        Effects.Add((effect, effect.Duration));
     }
 
     private void Show()
@@ -177,18 +197,25 @@ public abstract class BaseCharacter : MonoBehaviour
         _manaComponent.SetMaxResource(Mana, true);
     }
 
-    protected void CastMove(MoveDto move)
+    protected void CastMoveInSlot(int slot) => CastMove(Moves[slot]);
+
+    protected void CastMoveWithId(long moveId) => CastMove(Moves.FirstOrDefault(m => m.Id == moveId));
+
+    private void CastMove(MoveDto move)
     {
+        if(move == null) return;
+
+        if(!IsMyTurn) return;
+
         ApplyHealFrom(move);
 
         EffectDto effect = move.Effect;
 
         if(move.IsVFXAndEffectSelfCast && move.Effect != null)
         {
-            Effects.Add((move.Effect, move.Effect.Duration));
+            AddEffectUnique(move.Effect);
             effect = null;
         }
-
 
         int damageBeforeDefense = CalculateDamageBeforeDefense(move);
 
@@ -203,9 +230,9 @@ public abstract class BaseCharacter : MonoBehaviour
         switch(move.DamageType)
         {
             case DamageType.PHYSICAL:
-                return move.DamageScaling * Attack;
+                return (int)((move.DamageScaling / (float)100f) * Attack);
             case DamageType.MAGICAL:
-                return move.DamageScaling * Magic;
+                return (int)((move.DamageScaling / (float)100f) * Magic);
         }
 
         return 0;

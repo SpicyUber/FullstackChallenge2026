@@ -32,10 +32,14 @@ public class GameManager : SingletonPersistent<GameManager>
     public List<MoveDto> HeroLearnedMoves { get; private set; } = new();
     public List<ItemDto> HeroOwnedItems { get; private set; } = new();
 
+    public TurnState BattleTurnState => _battleTurnState;
+
     private EncounterTreeNodeDto _encounterTreeRoot { get; set; }
     private EncounterTreeNodeDto _encounterTreeCurrentNode { get; set; }
 
-    private bool _heroTurn = true;
+    private TurnState _battleTurnState = TurnState.HERO;
+
+    public long RecommendedCharacterMoveId { get; private set; } = -1;
 
     private void Start() => OpenMainMenu();
 
@@ -58,18 +62,29 @@ public class GameManager : SingletonPersistent<GameManager>
 
     private IEnumerator PlayMoveRoutine(DamageContext damageContext, FXContext fxContext)
     {
-        _battleLog.Log(new(damageContext.SenderName,damageContext.MoveName));
+        TurnState attackIsFromTurn = _battleTurnState;
+
+        _battleTurnState = TurnState.WAITING;
+
+        _battleLog.Log(new(damageContext.SenderName, damageContext.MoveName));
         yield return new WaitForSeconds(_delayBetweenMoveAndEffectInSeconds);
 
         ActivateFX(fxContext);
         yield return new WaitForSeconds(_delayBetweenEffectAndNextTurnInSeconds);
 
-        if(_heroTurn)
-            BattleEvents.InvokeMonsterAttacked(damageContext);
+        if(attackIsFromTurn == TurnState.HERO)
+        {
+            BattleEvents.InvokeMonsterWasAttacked(damageContext);
+            _battleTurnState = TurnState.MONSTER;
+        }
         else
-            BattleEvents.InvokeHeroAttacked(damageContext);
+        {
+            BattleEvents.InvokeHeroWasAttacked(damageContext);
+            _battleTurnState = TurnState.HERO;
+        }
 
-        _heroTurn = !_heroTurn;
+        BattleEvents.InvokeTurnStarted();
+
     }
 
     public void ActivateFX(FXContext fXContext)
@@ -94,5 +109,19 @@ public class GameManager : SingletonPersistent<GameManager>
         GameEvents.InvokeEncounterSelected(_encounterTreeCurrentNode.Encounter.Enemy);
 
         _bgController.ShowBackgroundFromDifficulty(_encounterTreeCurrentNode.Encounter.Difficulty);
+
+        BattleEvents.InvokeBattleStarted();
+    }
+
+    public IEnumerator GetRecommendedMoveCoroutine(CharacterBattleStateDto dto)
+    {
+        yield return _network.GetMove(dto);
+
+        if(_network.LastRequestSuccess)
+        {
+            RecommendedCharacterMoveId = _network.RecommendedMoveId;
+        }
+
+        else RecommendedCharacterMoveId = -1;
     }
 }

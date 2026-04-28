@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class BattleLogEntry : MonoBehaviour
+public class BattleLogEntry
 {
     public string Message { get; private set; }
 
