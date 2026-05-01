@@ -19,6 +19,8 @@ public class BattleLog : MonoBehaviour
         Debug.Log(entry.Message);
     }
 
+    public void Clear() => _battleLogs.Clear();
+
     private void Update()
     {
         _timer += Time.deltaTime;
@@ -27,6 +29,6 @@ public class BattleLog : MonoBehaviour
             _timer = 0f;
             LogAdded?.Invoke(_battleLogQueue.Dequeue());
         }
-            
+
     }
 }

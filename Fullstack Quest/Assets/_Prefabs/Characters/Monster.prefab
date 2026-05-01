@@ -79,8 +79,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Monster
   _spriteRenderer: {fileID: 2835523988087535204}
+  _hurtSound: {fileID: 8300000, guid: d954d9e94a8e2a34e9f7403fd06155c0, type: 3}
+  _healAndHurtFXDurationInSeconds: 0.5
+  _addBuffSound: {fileID: 8300000, guid: 0a2018eb9f0f3ee4683a1685cab6ef80, type: 3}
+  _addDebuffSound: {fileID: 8300000, guid: 116cdcb44f51e74409a835070e77f9d1, type: 3}
+  _healSound: {fileID: 8300000, guid: bbf1d72cd4c9ccf4b9e922beedf5aaaf, type: 3}
+  _blockDamageSound: {fileID: 8300000, guid: 3fbe4f64faf929d42a3399d8d5b9ea2d, type: 3}
   _healthComponent: {fileID: 8255896702926423408}
   _manaComponent: {fileID: 8217788581344686078}
+  _delayBeforeAttackingInSeconds: 1
 --- !u!212 &2835523988087535204 stripped
 SpriteRenderer:
   m_CorrespondingSourceObject: {fileID: 2222337341344148693, guid: 1a680fd2d1f56444eaea9bfb167d859a, type: 3}

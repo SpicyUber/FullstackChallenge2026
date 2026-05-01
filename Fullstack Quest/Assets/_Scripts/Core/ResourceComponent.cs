@@ -7,7 +7,7 @@ public class ResourceComponent : MonoBehaviour
     public int MaxValue { get; private set; }
 
     public int RegenValue { get => _regenValue; set { _regenValue = Mathf.Max(0, value); } }
-    public int AllowedMinForUsing { get => _allowedMinForUsing; set { _allowedMinForUsing = Mathf.Max(0, value); } }
+    public int AllowedMinForUse { get => _allowedMinForUsing; set { _allowedMinForUsing = Mathf.Max(0, value); } }
 
     public event Action ResourceEmpty;
     public event Action ResourceChanged;
@@ -35,10 +35,11 @@ public class ResourceComponent : MonoBehaviour
     /// </summary>
     public bool UseResource(int value)
     {
+        if(value <= 0) return true;
         int originalValue = CurrentValue;
 
-        if(value - CurrentValue <= _allowedMinForUsing) return false;
-        CurrentValue = Mathf.Max(CurrentValue - value, 0);
+        if(CurrentValue - value < _allowedMinForUsing) return false;
+        CurrentValue = Mathf.Max(CurrentValue - value, _allowedMinForUsing);
 
         InvokeEventIfResourceChanged(originalValue);
         return true;
@@ -51,7 +52,7 @@ public class ResourceComponent : MonoBehaviour
 
         if(setResourceToMax)
         {
-            CurrentValue = MaxValue;
+            ResetResource();
         }
         else
         {
@@ -61,15 +62,29 @@ public class ResourceComponent : MonoBehaviour
         InvokeEventIfResourceChanged(originalValue);
     }
 
-    public void TakeResource(int value)
+    public void TakeResource(int value, bool silent = false)
     {
         int originalValue = CurrentValue;
 
         CurrentValue = Mathf.Max(CurrentValue - value, 0);
-        if(CurrentValue == 0) ResourceEmpty?.Invoke();
+        if(CurrentValue == 0 && !silent) ResourceEmpty?.Invoke();
 
         InvokeEventIfResourceChanged(originalValue);
     }
 
+    public void SetValue(int value) => CurrentValue = Mathf.Clamp(0, value, MaxValue);
+
     public void ResetResource() => CurrentValue = MaxValue;
+
+    private void Regen() => Add(_regenValue);
+
+    private void OnEnable()
+    {
+        BattleEvents.TurnStarted += Regen;
+    }
+
+    private void OnDisable()
+    {
+        BattleEvents.TurnStarted -= Regen;
+    }
 }

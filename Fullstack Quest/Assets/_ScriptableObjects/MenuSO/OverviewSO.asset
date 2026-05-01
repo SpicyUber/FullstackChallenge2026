@@ -1,0 +1,15 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aae1f3a911f6ff248b5b7e812c0d4e31, type: 3}
+  m_Name: OverviewSO
+  m_EditorClassIdentifier: Assembly-CSharp::MenuSO
+  _menuPrefab: {fileID: 2515545228292764596, guid: 8fdcbc68c8b76a6438ee11b665f32bf6, type: 3}

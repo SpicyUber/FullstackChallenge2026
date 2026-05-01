@@ -6,6 +6,9 @@ using UnityEngine;
 
 public class Monster : BaseCharacter
 {
+    [SerializeField]
+    private float _delayBeforeAttackingInSeconds = 1f;
+
     public override int Attack => Mathf.Max(0, CharacterInfo.Attack + GetEffectValue(EffectType.MODIFY_ATTACK));
 
     public override int Defense => Mathf.Max(0, CharacterInfo.Defense + GetEffectValue(EffectType.MODIFY_DEFENSE));
@@ -16,7 +19,9 @@ public class Monster : BaseCharacter
 
     public override int Mana => CharacterInfo.Mana;
 
-    protected override bool IsMyTurn => GameManager.Instance.BattleTurnState == TurnState.MONSTER;
+    public override bool IsMyTurn => GameManager.Instance.BattleTurnState == TurnState.MONSTER;
+
+    protected override bool _flipVFXSprite => true;
 
     protected override void InitializeSpecific(CharacterDto characterDto)
     {
@@ -34,8 +39,6 @@ public class Monster : BaseCharacter
 
     private void GetAndPlayRecommendedMoveFromServer()
     {
-        if(!IsMyTurn) return;
-
         var battleState =
             new CharacterBattleStateDto(
                 CharacterInfo.Id,
@@ -49,6 +52,10 @@ public class Monster : BaseCharacter
 
     private IEnumerator GetAndPlayRecommendedMoveFromServerCoroutine(CharacterBattleStateDto battleState)
     {
+        
+        yield return new WaitForSeconds(_delayBeforeAttackingInSeconds);
+        if(!IsMyTurn || _healthComponent.CurrentValue==0) yield break;
+
         yield return GameManager.Instance.GetRecommendedMoveCoroutine(battleState);
         CastMoveWithId(GameManager.Instance.RecommendedCharacterMoveId);
     }

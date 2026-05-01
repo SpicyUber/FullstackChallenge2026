@@ -1,5 +1,6 @@
 using Shared.DataTransferObjects;
 using Shared.Enumerators;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -7,9 +8,20 @@ public class Hero : BaseCharacter
 {
     public const int HeroItemSlots = 4;
 
+    public int AttackLevel { get; set; }
+    public int DefenseLevel { get; set; }
+
+    public int MagicLevel { get; set; }
+
+    public int HealthLevel { get; set; }
+    public int ManaLevel { get; set; }
+
+    public List<MoveDto> LearnedMoves { get; set; } = new();
+    public List<ItemDto> OwnedItems { get; set; } = new();
+
     public ItemDto[] Items { get; private set; } = new ItemDto[HeroItemSlots];
 
-    public override int Attack => Mathf.Max(0,CharacterInfo.Attack
+    public override int Attack => Mathf.Max(0, CharacterInfo.Attack
         + (StatsUtils.AttackLevelScaling * GameManager.Instance.HeroAttackLevel)
         + GetEffectValue(EffectType.MODIFY_ATTACK) + Items.Sum(dto => dto?.AttackDelta ?? 0));
 
@@ -21,19 +33,29 @@ public class Hero : BaseCharacter
         + (StatsUtils.MagicLevelScaling * GameManager.Instance.HeroMagicLevel)
         + GetEffectValue(EffectType.MODIFY_MAGIC) + Items.Sum(dto => dto?.MagicDelta ?? 0));
 
-    public override int Health => CharacterInfo.Health
+    public override int Health => Mathf.Max(_healthComponent.AllowedMinForUse, CharacterInfo.Health
         + (StatsUtils.HealthLevelScaling * GameManager.Instance.HeroHealthLevel)
-        + Items.Sum(dto => dto?.HealthDelta ?? 0);
+        + Items.Sum(dto => dto?.HealthDelta ?? 0));
 
-    public override int Mana => CharacterInfo.Mana
+    public override int Mana => Mathf.Max(_manaComponent.AllowedMinForUse, CharacterInfo.Mana
         + (StatsUtils.ManaLevelScaling * GameManager.Instance.HeroManaLevel)
-        + Items.Sum(dto => dto?.ManaDelta ?? 0);
+        + Items.Sum(dto => dto?.ManaDelta ?? 0));
 
-    protected override bool IsMyTurn => GameManager.Instance.BattleTurnState == TurnState.HERO;
+    public override bool IsMyTurn => GameManager.Instance.BattleTurnState == TurnState.HERO;
+
+    protected override bool _flipVFXSprite => false;
 
     protected override void InitializeSpecific(CharacterDto characterDto)
     {
         _spriteRenderer.flipX = true;
+
+        LearnedMoves.Clear();
+        OwnedItems.Clear();
+        Items = new ItemDto[HeroItemSlots];
+
+        foreach(var move in Moves)
+            LearnedMoves.Add(move);
+
     }
 
     protected override void OnDeath() => BattleEvents.InvokePlayerDied();

@@ -23,7 +23,7 @@ public class MoveDetailsDisplay : MonoBehaviour
                 $"{damageStat}.\n";
 
         if(move.Effect != null)
-            moveInfo += $">{(move.IsVFXAndEffectSelfCast ? "Inflicts" : "Self inflicts")} effect <color=purple>{move.Effect.Type.ToString().Replace("_", " ")}</color>." +
+            moveInfo += $">{(!move.IsVFXAndEffectSelfCast ? "Inflicts" : "Self inflicts")} effect <color=purple>{move.Effect.Type.ToString().Replace("_", " ")}</color>." +
                 $"\nAmount: {((move.Effect.IsDebuff) ? -1 : 1) * move.Effect.Amount} " +
                 $"\nDuration: {move.Effect.Duration}\n";
 
@@ -31,4 +31,6 @@ public class MoveDetailsDisplay : MonoBehaviour
 
         _tmp.SetText(moveInfo);
     }
+
+    public void Clear() => _tmp.SetText("");
 }

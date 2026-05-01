@@ -116,4 +116,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UIManager
   _menuSOs:
   - {fileID: 11400000, guid: 849b517156689f749adfc76487b32fd6, type: 2}
+  - {fileID: 11400000, guid: a9fca83cd7892654fb793b5a379a7b44, type: 2}
+  - {fileID: 11400000, guid: 52cee8cedee39f14e959f14b6fe9c7e7, type: 2}
+  - {fileID: 11400000, guid: 0f5f6f920603a564e96f19c5aece8753, type: 2}
   _transform: {fileID: 1609740597672270447}

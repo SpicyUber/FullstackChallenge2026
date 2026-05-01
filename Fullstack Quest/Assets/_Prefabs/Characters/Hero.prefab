@@ -48,6 +48,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Hero
   _spriteRenderer: {fileID: 2222337341344148693}
+  _hurtSound: {fileID: 8300000, guid: d954d9e94a8e2a34e9f7403fd06155c0, type: 3}
+  _healAndHurtFXDurationInSeconds: 0.5
+  _addBuffSound: {fileID: 8300000, guid: 0a2018eb9f0f3ee4683a1685cab6ef80, type: 3}
+  _addDebuffSound: {fileID: 8300000, guid: 116cdcb44f51e74409a835070e77f9d1, type: 3}
+  _healSound: {fileID: 8300000, guid: bbf1d72cd4c9ccf4b9e922beedf5aaaf, type: 3}
+  _blockDamageSound: {fileID: 8300000, guid: 3fbe4f64faf929d42a3399d8d5b9ea2d, type: 3}
   _healthComponent: {fileID: 5412284749812506561}
   _manaComponent: {fileID: 5442012110297412943}
 --- !u!212 &2222337341344148693

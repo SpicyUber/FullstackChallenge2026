@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd70117a07a87c745902a4dc117a35ea, type: 3}
   m_Name: Fire
   m_EditorClassIdentifier: Assembly-CSharp::ElementSO
-  _color: {r: 1, g: 0.43189976, b: 0, a: 0}
+  _color: {r: 1, g: 0.43189976, b: 0, a: 1}
   _element: 2

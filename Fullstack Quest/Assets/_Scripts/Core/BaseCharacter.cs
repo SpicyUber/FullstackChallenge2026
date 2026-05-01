@@ -1,6 +1,8 @@
+using DG.Tweening;
 using Shared.DataTransferObjects;
 using Shared.Enumerators;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -11,8 +13,15 @@ public abstract class BaseCharacter : MonoBehaviour
     public CharacterDto CharacterInfo { get; protected set; }
     public const int MoveCount = 4;
 
+    [Header("Visuals & Sound")]
     [SerializeField] protected SpriteRenderer _spriteRenderer;
+    [SerializeField] private AudioClip _hurtSound;
+    [SerializeField] private float _healAndHurtFXDurationInSeconds = 0.5f;
+    [SerializeField] private AudioClip _addBuffSound, _addDebuffSound;
+    [SerializeField] private AudioClip _healSound;
+    [SerializeField] private AudioClip _blockDamageSound;
 
+    [Header("Resources")]
     [SerializeField] protected ResourceComponent _healthComponent;
     [SerializeField] protected ResourceComponent _manaComponent;
 
@@ -31,7 +40,9 @@ public abstract class BaseCharacter : MonoBehaviour
     public abstract int Health { get; }
     public abstract int Mana { get; }
 
-    protected abstract bool IsMyTurn { get; }
+    public abstract bool IsMyTurn { get; }
+
+    protected abstract bool _flipVFXSprite { get; }
 
     protected abstract void InitializeSpecific(CharacterDto characterDto);
 
@@ -73,7 +84,7 @@ public abstract class BaseCharacter : MonoBehaviour
         _manaComponent.SetMaxResource(dto.Mana, setResourceToMax: true);
 
         _manaComponent.RegenValue = StatsUtils.DefaultManaRegen;
-        _healthComponent.AllowedMinForUsing = StatsUtils.DefaultMinHealth;
+        _healthComponent.AllowedMinForUse = StatsUtils.DefaultMinHealth;
 
         for(int i = 0; i < Moves.Length; i++)
         {
@@ -111,6 +122,8 @@ public abstract class BaseCharacter : MonoBehaviour
     /// </summary>
     private void ApplyEffectTick()
     {
+        if(!IsMyTurn) return;
+
         ApplyHealthBuffs();
 
         for(int i = Effects.Count - 1; i >= 0; i--)
@@ -134,12 +147,12 @@ public abstract class BaseCharacter : MonoBehaviour
             amount += GetEffectValue(effectType);
         }
 
-        _healthComponent.TakeResource(amount);
+        _healthComponent.TakeResource(amount, silent: true);
     }
 
     protected virtual void TakeDamageAndApplyEffects(DamageContext damageContext)
     {
-        if(damageContext == null)
+        if(damageContext == null || !IsMyTurn)
             return;
 
         int finalDamage = 0;
@@ -160,23 +173,48 @@ public abstract class BaseCharacter : MonoBehaviour
         if(damageContext.Effect != null)
             AddEffectUnique(damageContext.Effect);
 
-
-        _healthComponent.TakeResource(Mathf.Max(0,finalDamage));
+        if(finalDamage > 0)
+        {
+            PlayHurtFX();
+        }
+        else if(damageContext.Type == DamageType.PHYSICAL)
+        {
+            GameManager.Instance.PlayBlockedParticle(transform.position);
+            AudioSource.PlayClipAtPoint(_blockDamageSound, Camera.main.transform.position);
+        }
+        _healthComponent.TakeResource(Mathf.Max(0, finalDamage));
 
     }
 
-    private void AddEffectUnique(EffectDto effect)
+    private void PlayHurtFX()
+    {
+        AudioSource.PlayClipAtPoint(_hurtSound, Camera.main.transform.position);
+        DOTween.Sequence(_spriteRenderer)
+            .Append(_spriteRenderer.DOColor(Color.red, _healAndHurtFXDurationInSeconds / 2f))
+            .Append(_spriteRenderer.DOColor(Color.white, _healAndHurtFXDurationInSeconds / 2f));
+    }
+
+    private void AddEffectUnique(EffectDto effect, float sfxDelayInSeconds = 0f)
     {
         for(int i = 0; i < Effects.Count; i++)
         {
             if(Effects[i].Item1.Type == effect.Type)
             {
-                Effects[i] = (effect, effect.Duration);
+                Effects[i] = (effect, effect.Duration * 2);
+                StartCoroutine(PlayBuffSound(effect.IsDebuff, sfxDelayInSeconds));
                 return;
             }
         }
 
-        Effects.Add((effect, effect.Duration));
+        StartCoroutine(PlayBuffSound(effect.IsDebuff, sfxDelayInSeconds));
+        Effects.Add((effect, effect.Duration * 2));
+    }
+
+    private IEnumerator PlayBuffSound(bool isDebuff, float sfxDelayInSeconds)
+    {
+        yield return new WaitForSeconds(sfxDelayInSeconds);
+        if(isDebuff) AudioSource.PlayClipAtPoint(_addDebuffSound, Camera.main.transform.position);
+        else AudioSource.PlayClipAtPoint(_addBuffSound, Camera.main.transform.position);
     }
 
     private void Show()
@@ -204,8 +242,19 @@ public abstract class BaseCharacter : MonoBehaviour
     private void CastMove(MoveDto move)
     {
         if(move == null) return;
-
         if(!IsMyTurn) return;
+
+        var previousMana = _manaComponent.CurrentValue;
+        var previousHealth = _healthComponent.CurrentValue;
+
+        if(!(_healthComponent.UseResource(move.HealthCost) && _manaComponent.UseResource(move.ManaCost)))
+        {
+            _healthComponent.SetValue(previousHealth);
+            _manaComponent.SetValue(previousMana);
+
+            GameManager.Instance.SkipMove(CharacterInfo.Name, move.Name);
+            return;
+        }
 
         ApplyHealFrom(move);
 
@@ -220,7 +269,7 @@ public abstract class BaseCharacter : MonoBehaviour
         int damageBeforeDefense = CalculateDamageBeforeDefense(move);
 
         var damageContext = new DamageContext(CharacterInfo.Name, move.Name, damageBeforeDefense, move.DamageType, effect);
-        var fxContext = new FXContext(move.SFXType, move.VFXType, move.Element, move.IsVFXAndEffectSelfCast);
+        var fxContext = new FXContext(move.SFXType, move.VFXType, move.Element, move.IsVFXAndEffectSelfCast, _flipVFXSprite, transform.position);
 
         GameManager.Instance.PlayMove(damageContext, fxContext);
     }
@@ -238,5 +287,24 @@ public abstract class BaseCharacter : MonoBehaviour
         return 0;
     }
 
-    private void ApplyHealFrom(MoveDto move) => HealthComponent.Add(move.SelfHealingScaling * Magic);
+    private void ApplyHealFrom(MoveDto move)
+    {
+        int finalHealing = (int)(Magic * move.SelfHealingScaling / 100f);
+        if(finalHealing <= 0) return;
+
+        DOVirtual.DelayedCall(GameManager.Instance.DelayBetweenMoveAndNextTurnInSeconds, () =>
+        {
+            HealthComponent.Add(finalHealing);
+            PlayHealFX();
+        });
+
+    }
+
+    private void PlayHealFX()
+    {
+        AudioSource.PlayClipAtPoint(_healSound, Camera.main.transform.position);
+        DOTween.Sequence(_spriteRenderer)
+            .Append(_spriteRenderer.DOColor(Color.green, _healAndHurtFXDurationInSeconds / 2f))
+            .Append(_spriteRenderer.DOColor(Color.white, _healAndHurtFXDurationInSeconds / 2f));
+    }
 }
