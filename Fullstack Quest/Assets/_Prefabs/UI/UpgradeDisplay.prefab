@@ -174,7 +174,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8eafa9d9690de154db6d6f7c9faba765, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlaySFXOnClick
-  _sfx: {fileID: 8300000, guid: 06bb7113e5605194ab7f45ea9cc49e65, type: 3}
+  _sfx: {fileID: 8300000, guid: 479fd91414388a5409cf6e1b3f4ab49a, type: 3}
 --- !u!1 &6599049399090479889
 GameObject:
   m_ObjectHideFlags: 0

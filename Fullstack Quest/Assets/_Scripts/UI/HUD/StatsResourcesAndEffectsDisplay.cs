@@ -12,6 +12,7 @@ public class StatsResourcesAndEffectsDisplay : MonoBehaviour, IHUDElement
 
     [SerializeField] private TextMeshProUGUI _heroHPLabel, _heroManaLabel, _monsterHPLabel, _monsterManaLabel;
     [SerializeField] private TextMeshProUGUI _heroStatsLabel, _monsterStatsLabel;
+    [SerializeField] private TextMeshProUGUI _heroNameLabel, _monsterNameLabel;
 
     [SerializeField] private Transform _heroBuffContainer, _monsterBuffContainer;
 
@@ -28,6 +29,7 @@ public class StatsResourcesAndEffectsDisplay : MonoBehaviour, IHUDElement
             _hero.HealthComponent.ResourceChanged += Refresh;
             _hero.ManaComponent.ResourceChanged += Refresh;
             _hero.AppliedEffectTick += Refresh;
+
         }
 
         if(_monster)
@@ -36,7 +38,10 @@ public class StatsResourcesAndEffectsDisplay : MonoBehaviour, IHUDElement
             _monster.HealthComponent.ResourceChanged += Refresh;
             _monster.ManaComponent.ResourceChanged += Refresh;
             _monster.AppliedEffectTick += Refresh;
+
         }
+
+        BattleEvents.GlobalEffectApplied += RefreshAfterGlobalEffect;
     }
 
     public void Initialize(BaseCharacter hero, BaseCharacter monster)
@@ -89,9 +94,14 @@ public class StatsResourcesAndEffectsDisplay : MonoBehaviour, IHUDElement
         _heroStatsLabel.SetText($"A {_hero.Attack} D {_hero.Defense} M {_hero.Magic}");
         _monsterStatsLabel.SetText($"A {_monster.Attack} D {_monster.Defense} M {_monster.Magic}");
 
+        _heroNameLabel.SetText(_hero.CharacterInfo.Name);
+        _monsterNameLabel.SetText(_monster.CharacterInfo.Name);
+
         RefreshBuffs(_heroBuffContainer, _hero.Effects);
         RefreshBuffs(_monsterBuffContainer, _monster.Effects);
     }
+
+    private void RefreshAfterGlobalEffect(EffectDto effect) => Refresh();
 
     private void RefreshBuffs(Transform buffContainer, List<(EffectDto, int)> effects)
     {
@@ -103,7 +113,7 @@ public class StatsResourcesAndEffectsDisplay : MonoBehaviour, IHUDElement
         foreach(var (effect, duration) in effects)
         {
             GameObject icon = Instantiate(_buffIconDisplayPrefab, buffContainer);
-            icon.GetComponent<Image>().sprite = LookupDictionaries.Instance.GetBuffSprite(effect.Type,effect.IsDebuff);
+            icon.GetComponent<Image>().sprite = LookupDictionaries.Instance.GetBuffSprite(effect.Type, effect.IsDebuff);
         }
     }
 
@@ -124,6 +134,8 @@ public class StatsResourcesAndEffectsDisplay : MonoBehaviour, IHUDElement
             _monster.ManaComponent.ResourceChanged -= Refresh;
             _monster.AppliedEffectTick -= Refresh;
         }
+
+        BattleEvents.GlobalEffectApplied -= RefreshAfterGlobalEffect;
 
     }
 }

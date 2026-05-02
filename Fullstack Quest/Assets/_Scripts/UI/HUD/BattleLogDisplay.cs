@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ public class BattleLogDisplay : MonoBehaviour
     {
         _tmp = GetComponent<TextMeshProUGUI>();
         BattleLog.LogAdded += ShowLog;
+        BattleLog.LogCleared += ClearDisplay;
     }
 
     private void ShowLog(BattleLogEntry entry) 
@@ -20,5 +22,11 @@ public class BattleLogDisplay : MonoBehaviour
     private void OnDisable()
     {
         BattleLog.LogAdded -= ShowLog;
+        BattleLog.LogCleared -= ClearDisplay;
+    }
+
+    private void ClearDisplay()
+    {
+        _tmp.SetText("");
     }
 }

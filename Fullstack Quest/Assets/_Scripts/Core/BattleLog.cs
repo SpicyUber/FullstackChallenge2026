@@ -5,6 +5,7 @@ using UnityEngine;
 public class BattleLog : MonoBehaviour
 {
     public static event Action<BattleLogEntry> LogAdded;
+    public static event Action LogCleared;
 
     [SerializeField] private float _delayBetweenLogs = 1f;
     private float _timer = 0f;
@@ -19,7 +20,11 @@ public class BattleLog : MonoBehaviour
         Debug.Log(entry.Message);
     }
 
-    public void Clear() => _battleLogs.Clear();
+    public void Clear() 
+    { 
+        _battleLogs.Clear();
+        LogCleared?.Invoke();
+    }
 
     private void Update()
     {

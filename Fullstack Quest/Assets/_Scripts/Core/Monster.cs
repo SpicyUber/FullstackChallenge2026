@@ -9,15 +9,15 @@ public class Monster : BaseCharacter
     [SerializeField]
     private float _delayBeforeAttackingInSeconds = 1f;
 
-    public override int Attack => Mathf.Max(0, CharacterInfo.Attack + GetEffectValue(EffectType.MODIFY_ATTACK));
+    public override int Attack => (int)(Mathf.Max(0, CharacterInfo.Attack) * (1 + (GetEffectValue(EffectType.MODIFY_ATTACK) / 100f)) * GameManager.Instance.LoopStatMultiplier);
 
-    public override int Defense => Mathf.Max(0, CharacterInfo.Defense + GetEffectValue(EffectType.MODIFY_DEFENSE));
+    public override int Defense => (int)(Mathf.Max(0, CharacterInfo.Defense) * (1 + (GetEffectValue(EffectType.MODIFY_DEFENSE) / 100f)) * GameManager.Instance.LoopStatMultiplier);
 
-    public override int Magic => Mathf.Max(0, CharacterInfo.Magic + GetEffectValue(EffectType.MODIFY_MAGIC));
+    public override int Magic => (int)(Mathf.Max(0, CharacterInfo.Magic) * (1 + (GetEffectValue(EffectType.MODIFY_MAGIC) / 100f)) * GameManager.Instance.LoopStatMultiplier);
 
-    public override int Health => CharacterInfo.Health;
+    public override int Health => CharacterInfo.Health * GameManager.Instance.LoopStatMultiplier;
 
-    public override int Mana => CharacterInfo.Mana;
+    public override int Mana => CharacterInfo.Mana * GameManager.Instance.LoopStatMultiplier;
 
     public override bool IsMyTurn => GameManager.Instance.BattleTurnState == TurnState.MONSTER;
 
@@ -52,9 +52,9 @@ public class Monster : BaseCharacter
 
     private IEnumerator GetAndPlayRecommendedMoveFromServerCoroutine(CharacterBattleStateDto battleState)
     {
-        
+
         yield return new WaitForSeconds(_delayBeforeAttackingInSeconds);
-        if(!IsMyTurn || _healthComponent.CurrentValue==0) yield break;
+        if(!IsMyTurn || _healthComponent.CurrentValue == 0) yield break;
 
         yield return GameManager.Instance.GetRecommendedMoveCoroutine(battleState);
         CastMoveWithId(GameManager.Instance.RecommendedCharacterMoveId);

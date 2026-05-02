@@ -12,6 +12,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: UnequippedMove
       objectReference: {fileID: 0}
+    - target: {fileID: 4619894467274306173, guid: 35c91baf1b64f5842bb7c3c67325be89, type: 3}
+      propertyPath: m_text
+      value: Undefinedddddddddddddd
+      objectReference: {fileID: 0}
+    - target: {fileID: 4619894467274306173, guid: 35c91baf1b64f5842bb7c3c67325be89, type: 3}
+      propertyPath: m_fontSize
+      value: 18.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 4619894467274306173, guid: 35c91baf1b64f5842bb7c3c67325be89, type: 3}
+      propertyPath: m_fontSizeMax
+      value: 36
+      objectReference: {fileID: 0}
+    - target: {fileID: 4619894467274306173, guid: 35c91baf1b64f5842bb7c3c67325be89, type: 3}
+      propertyPath: m_TextWrappingMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4619894467274306173, guid: 35c91baf1b64f5842bb7c3c67325be89, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6428047991227373885, guid: 35c91baf1b64f5842bb7c3c67325be89, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -130,4 +150,3 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnequippedMoveDisplay
   _tmp: {fileID: 3945793300848934837}
-  _pickUpSound: {fileID: 8300000, guid: 06bb7113e5605194ab7f45ea9cc49e65, type: 3}

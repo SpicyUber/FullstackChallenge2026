@@ -91,6 +91,8 @@ MonoBehaviour:
   _easyBG: {fileID: 6963766718405572784}
   _mediumBG: {fileID: 281588986826390101}
   _hardBG: {fileID: 7097623572418293547}
+  _normalMusic: {fileID: 8300000, guid: 0ef21e2121d03744c9b0ea8f0f8f168f, type: 3}
+  _bossMusic: {fileID: 8300000, guid: 8ae54206a8feb8946829f0bdc2d5e45a, type: 3}
   _bgMusic: {fileID: 5948294112348069736}
 --- !u!114 &6494983737682947526
 MonoBehaviour:

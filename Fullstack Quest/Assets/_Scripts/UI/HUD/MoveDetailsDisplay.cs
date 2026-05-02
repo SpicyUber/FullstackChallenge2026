@@ -24,7 +24,7 @@ public class MoveDetailsDisplay : MonoBehaviour
 
         if(move.Effect != null)
             moveInfo += $">{(!move.IsVFXAndEffectSelfCast ? "Inflicts" : "Self inflicts")} effect <color=purple>{move.Effect.Type.ToString().Replace("_", " ")}</color>." +
-                $"\nAmount: {((move.Effect.IsDebuff) ? -1 : 1) * move.Effect.Amount} " +
+                $"\nAmount: {((move.Effect.IsDebuff) ? -1 : 1) * move.Effect.Amount}% " +
                 $"\nDuration: {move.Effect.Duration}\n";
 
         moveInfo += $"><color=#66B2FF>Mana</color> cost: {move.ManaCost}\n><color=red>Health</color> cost: {move.HealthCost}";

@@ -27,7 +27,7 @@ namespace Logic
                 .ThenInclude(characterMove => characterMove.Move).ThenInclude(move => move.Effect)
                 .ToListAsync();
 
-            encounters.Sort((a, b) => a.Difficulty.CompareTo(b.Difficulty));
+            encounters = encounters.OrderBy(e => e.Difficulty).ThenBy(e => e.Id).ToList();
 
             List<EncounterDto> encounterList = new();
 

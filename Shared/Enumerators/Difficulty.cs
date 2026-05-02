@@ -8,6 +8,6 @@ namespace Shared.Enumerators
 {
     public enum Difficulty
     {
-        EASY, MEDIUM, HARD
+        EASY, MEDIUM, HARD, IMPOSSIBLE
     }
 }

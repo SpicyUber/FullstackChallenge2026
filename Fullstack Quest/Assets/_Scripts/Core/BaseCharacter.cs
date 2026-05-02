@@ -56,10 +56,11 @@ public abstract class BaseCharacter : MonoBehaviour
     {
         _healthComponent.ResourceEmpty += OnDeath;
         BattleEvents.BattleStarted += ResetEffectsAndResources;
-        BattleEvents.TurnStarted += ApplyEffectTick;
         BattleEvents.MonsterDied += Hide;
         BattleEvents.PlayerDied += Hide;
         BattleEvents.BattleStarted += Show;
+        BattleEvents.GlobalEffectApplied += AddGlobalEffect;
+        GameEvents.SavedAndQuit += Hide;
         DontDestroyOnLoad(this.gameObject);
         OnEnableSpecific();
     }
@@ -68,10 +69,11 @@ public abstract class BaseCharacter : MonoBehaviour
     {
         _healthComponent.ResourceEmpty -= OnDeath;
         BattleEvents.BattleStarted -= ResetEffectsAndResources;
-        BattleEvents.TurnStarted -= ApplyEffectTick;
         BattleEvents.MonsterDied -= Hide;
         BattleEvents.PlayerDied -= Hide;
         BattleEvents.BattleStarted -= Show;
+        BattleEvents.GlobalEffectApplied -= AddGlobalEffect;
+        GameEvents.SavedAndQuit -= Hide;
         OnDisableSpecific();
     }
 
@@ -120,17 +122,17 @@ public abstract class BaseCharacter : MonoBehaviour
     /// Also applies health buffs/debuffs.
     /// (e.g., bleed,poison).
     /// </summary>
-    private void ApplyEffectTick()
+    private void ApplyEffectTick(bool useHurtFX = false)
     {
         if(!IsMyTurn) return;
 
-        ApplyHealthBuffs();
+        ApplyHealthBuffs(useHurtFX);
 
         for(int i = Effects.Count - 1; i >= 0; i--)
         {
             var (effect, duration) = Effects[i];
 
-            if(duration <= 1)
+            if(duration <= 0)
                 Effects.RemoveAt(i);
             else
                 Effects[i] = (effect, duration - 1);
@@ -139,21 +141,45 @@ public abstract class BaseCharacter : MonoBehaviour
         AppliedEffectTick?.Invoke();
     }
 
-    private void ApplyHealthBuffs()
+    private void ApplyHealthBuffs(bool useHurtFX)
+    {
+        bool playFX = ApplyUseResourceBuff();
+        playFX = ApplyTakeResourceBuff() || playFX;
+        if(playFX && useHurtFX)
+            PlayHurtFX();
+    }
+
+    private bool ApplyUseResourceBuff()
     {
         int amount = 0;
-        foreach(var effectType in StatsUtils.HealthBuffs)
+        foreach(var effectType in StatsUtils.UseResourceHealthBuffs)
         {
             amount += GetEffectValue(effectType);
         }
+        int healthDelta = (int)(amount * _healthComponent.CurrentValue / 100f);
+        return healthDelta < 0 && _healthComponent.UseResource(Mathf.Abs(healthDelta));
+    }
 
-        _healthComponent.TakeResource(amount, silent: true);
+    private bool ApplyTakeResourceBuff()
+    {
+        int amount = 0;
+        foreach(var effectType in StatsUtils.TakeResourceHealthBuffs)
+        {
+            amount += GetEffectValue(effectType);
+        }
+        int healthDelta = (int)(amount * _healthComponent.CurrentValue / 100f);
+        if(healthDelta < 0)
+            _healthComponent.TakeResource(Mathf.Abs(healthDelta));
+        return healthDelta < 0;
     }
 
     protected virtual void TakeDamageAndApplyEffects(DamageContext damageContext)
     {
         if(damageContext == null || !IsMyTurn)
+        {
+            ApplyEffectTick();
             return;
+        }
 
         int finalDamage = 0;
 
@@ -184,6 +210,8 @@ public abstract class BaseCharacter : MonoBehaviour
         }
         _healthComponent.TakeResource(Mathf.Max(0, finalDamage));
 
+        if(_healthComponent.CurrentValue > 0)
+            ApplyEffectTick(useHurtFX: !(finalDamage > 0));
     }
 
     private void PlayHurtFX()
@@ -200,15 +228,17 @@ public abstract class BaseCharacter : MonoBehaviour
         {
             if(Effects[i].Item1.Type == effect.Type)
             {
-                Effects[i] = (effect, effect.Duration * 2);
+                Effects[i] = (effect, effect.Duration);
                 StartCoroutine(PlayBuffSound(effect.IsDebuff, sfxDelayInSeconds));
                 return;
             }
         }
 
         StartCoroutine(PlayBuffSound(effect.IsDebuff, sfxDelayInSeconds));
-        Effects.Add((effect, effect.Duration * 2));
+        Effects.Add((effect, effect.Duration));
     }
+
+    private void AddGlobalEffect(EffectDto effect) => AddEffectUnique(effect);
 
     private IEnumerator PlayBuffSound(bool isDebuff, float sfxDelayInSeconds)
     {
@@ -289,7 +319,9 @@ public abstract class BaseCharacter : MonoBehaviour
 
     private void ApplyHealFrom(MoveDto move)
     {
-        int finalHealing = (int)(Magic * move.SelfHealingScaling / 100f);
+        int scalingStat = move.DamageType == DamageType.PHYSICAL ? Attack : Magic;
+        int finalHealing = (int)(scalingStat * move.SelfHealingScaling / 100f);
+
         if(finalHealing <= 0) return;
 
         DOVirtual.DelayedCall(GameManager.Instance.DelayBetweenMoveAndNextTurnInSeconds, () =>

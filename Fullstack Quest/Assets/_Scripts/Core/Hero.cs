@@ -21,17 +21,20 @@ public class Hero : BaseCharacter
 
     public ItemDto[] Items { get; private set; } = new ItemDto[HeroItemSlots];
 
-    public override int Attack => Mathf.Max(0, CharacterInfo.Attack
+    public override int Attack => (int)(Mathf.Max(0, CharacterInfo.Attack
         + (StatsUtils.AttackLevelScaling * GameManager.Instance.HeroAttackLevel)
-        + GetEffectValue(EffectType.MODIFY_ATTACK) + Items.Sum(dto => dto?.AttackDelta ?? 0));
+        + Items.Sum(dto => dto?.AttackDelta ?? 0))
+        * (1 + (GetEffectValue(EffectType.MODIFY_ATTACK) / 100f)));
 
-    public override int Defense => Mathf.Max(0, CharacterInfo.Defense
+    public override int Defense => (int)(Mathf.Max(0, CharacterInfo.Defense
         + (StatsUtils.DefenseLevelScaling * GameManager.Instance.HeroDefenseLevel)
-        + GetEffectValue(EffectType.MODIFY_DEFENSE) + Items.Sum(dto => dto?.DefenseDelta ?? 0));
+        + Items.Sum(dto => dto?.DefenseDelta ?? 0))
+        * (1 + (GetEffectValue(EffectType.MODIFY_DEFENSE) / 100f)));
 
-    public override int Magic => Mathf.Max(0, CharacterInfo.Magic
+    public override int Magic => (int)(Mathf.Max(0, CharacterInfo.Magic
         + (StatsUtils.MagicLevelScaling * GameManager.Instance.HeroMagicLevel)
-        + GetEffectValue(EffectType.MODIFY_MAGIC) + Items.Sum(dto => dto?.MagicDelta ?? 0));
+        + Items.Sum(dto => dto?.MagicDelta ?? 0))
+        * (1 + (GetEffectValue(EffectType.MODIFY_MAGIC) / 100f)));
 
     public override int Health => Mathf.Max(_healthComponent.AllowedMinForUse, CharacterInfo.Health
         + (StatsUtils.HealthLevelScaling * GameManager.Instance.HeroHealthLevel)

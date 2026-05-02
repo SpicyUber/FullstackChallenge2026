@@ -76,6 +76,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0648e95db4ba7c3488ca52a8c20383a3, type: 2}
   - {fileID: 11400000, guid: 3ab05f8b5f392454ead711f01c30b814, type: 2}
   - {fileID: 11400000, guid: 2e0dd4aaa0f8fd7499cc04a2e011ace2, type: 2}
+  - {fileID: 11400000, guid: 7830dbafa6ce05949ad6158d1526af89, type: 2}
+  - {fileID: 11400000, guid: 5fc6d8afcc5d2f545beee292ccaf9228, type: 2}
   _buffSprites:
   - {fileID: 11400000, guid: ccd729cc62534c44685a980e168ae239, type: 2}
   - {fileID: 11400000, guid: ecc635030709a6a4d9c706a807828d6a, type: 2}

@@ -21,7 +21,7 @@ public class ShopMenu : Menu<ShopMenuData>
     private UpgradeDisplay _udAttack, _udDefense, _udMagic, _udMana, _udHealth;
 
     [SerializeField]
-    private Button[] _buttonsImuneToBeingDisabled;
+    private Button[] _buttonsToDisableWhenOutOfUpgrades;
 
     public override void Load(ShopMenuData data)
     {
@@ -115,27 +115,19 @@ public class ShopMenu : Menu<ShopMenuData>
     {
         _levelUpTokens.SetText("" + GameManager.Instance.LevelUpStatTokens);
 
-        if(GameManager.Instance.LevelUpStatTokens == 0) DisableAllButtons();
-        else EnableAllButtons();
-
-        EnableImmuneButtons();
+        if(GameManager.Instance.LevelUpStatTokens == 0) DisableUpgradeButtons();
+        else EnableUpgradeButtons();
     }
 
-    private void EnableImmuneButtons()
+    private void EnableUpgradeButtons()
     {
-        foreach(Button button in _buttonsImuneToBeingDisabled)
+        foreach(Button button in _buttonsToDisableWhenOutOfUpgrades)
             button.interactable = true;
     }
 
-    private void EnableAllButtons()
+    private void DisableUpgradeButtons()
     {
-        foreach(Button button in GetComponentsInChildren<Button>())
-            button.interactable = true;
-    }
-
-    private void DisableAllButtons()
-    {
-        foreach(Button button in GetComponentsInChildren<Button>())
+        foreach(Button button in _buttonsToDisableWhenOutOfUpgrades)
             button.interactable = false;
     }
 }

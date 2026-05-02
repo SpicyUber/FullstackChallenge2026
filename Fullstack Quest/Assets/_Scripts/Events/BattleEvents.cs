@@ -15,6 +15,8 @@ public class BattleEvents
 
     public static event Action<long> PlayerPickedMove;
     public static event Action<long> MonsterPickedMove;
+
+    public static event Action<EffectDto> GlobalEffectApplied;
     
     public static void InvokeHeroWasAttacked(DamageContext context) => HeroWasAttacked?.Invoke(context);
     public static void InvokeMonsterWasAttacked(DamageContext context) => MonsterWasAttacked?.Invoke(context);
@@ -27,4 +29,6 @@ public class BattleEvents
 
     public static void InvokePlayerPickedMove(long moveId) => PlayerPickedMove?.Invoke(moveId);
     public static void InvokeMonsterPickedMove(long moveId) => MonsterPickedMove?.Invoke(moveId);
+
+    public static void InvokeGlobalEffectApplied(EffectDto effect) => GlobalEffectApplied?.Invoke(effect);
 }

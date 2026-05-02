@@ -4,6 +4,7 @@ using Shared.Enumerators;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using static UnityEditor.Progress;
 using Random = UnityEngine.Random;
@@ -50,6 +51,9 @@ public class GameManager : SingletonPersistent<GameManager>
     public TurnState BattleTurnState => _battleTurnState;
     public long RecommendedCharacterMoveId { get; private set; } = -1;
 
+    public int LoopCount { get => (_endlessMode) ? _loopCount : 1; }
+    public int LoopStatMultiplier { get => LoopCount == 1 ? 1 : LoopCount * StatsUtils.EnemyStatBuffMultiplierPerLevelLoop; }
+
     public float DelayBetweenMoveAndNextTurnInSeconds
     => _delayBetweenMoveAndEffectInSeconds
     + _delayBetweenEffectAndNextTurnInSeconds;
@@ -59,11 +63,17 @@ public class GameManager : SingletonPersistent<GameManager>
 
     private TurnState _battleTurnState = TurnState.HERO;
 
-    private const int NextLevelThresholdMultiplier = 2;
+    private bool _endlessMode = false;
+    private int _loopCount = 1;
 
-    public void StartNewGame()
+    private const float NextLevelThresholdMultiplier = 1.5f;
+    private const int StartXpToNextLevel = 10;
+
+    private long _chosenHeroId = 0;
+
+    public void StartGame(bool endlessMode = false, bool newGame = true)
     {
-        StartCoroutine(StartNewGameRoutine());
+        StartCoroutine(StartGameRoutine(endlessMode, newGame));
     }
 
     public IEnumerator GetRecommendedMoveCoroutine(CharacterBattleStateDto dto)
@@ -98,10 +108,16 @@ public class GameManager : SingletonPersistent<GameManager>
     private void ApplyMoveMovement(FXContext fxContext)
     {
         if(fxContext.VFXType == MoveVFXType.PROJECTILE)
+        {
+            _fxTransform.position
+            = fxContext.CastPosition;
             _fxTransform.DOMoveX(-fxContext.CastPosition.x, _delayBetweenEffectAndNextTurnInSeconds);
+        }
         else
+        {
             _fxTransform.position
                 = new Vector3(((fxContext.IsSelfCast) ? 1 : -1) * fxContext.CastPosition.x, fxContext.CastPosition.y, fxContext.CastPosition.z);
+        }
     }
 
     private void ColorMove(Element element) => _fxRenderer.color = LookupDictionaries.Instance.GetColor(element);
@@ -114,7 +130,7 @@ public class GameManager : SingletonPersistent<GameManager>
 
     private void OpenMainMenu()
     {
-        bool doesSaveExist = SaveManager.Instance.HasSave();
+        bool doesSaveExist = SaveManager.Instance.HasSave;
 
         UIManager.Instance.OpenMenu<MainMenuData>(new(doesSaveExist));
     }
@@ -124,6 +140,7 @@ public class GameManager : SingletonPersistent<GameManager>
         _battleTurnState = TurnState.WAITING;
         _bgController.HideBackgrounds();
         _bgController.StopBGMusic();
+        SaveManager.Instance.Delete();
 
         UIManager.Instance.OpenMenu<MessageBoxData>(
         new(
@@ -139,6 +156,56 @@ public class GameManager : SingletonPersistent<GameManager>
         _battleTurnState = TurnState.WAITING;
         _bgController.HideBackgrounds();
         _bgController.StopBGMusic();
+
+
+        if(_encounterTreeCurrentNode.Left == null && _encounterTreeCurrentNode.Right == null)
+        {
+            OnWonGame(battleReport);
+        }
+        else
+        {
+            UIManager.Instance.OpenMenu<MessageBoxData>(
+            new(
+            battleReport.ToArray(),
+            GoToShop
+            ));
+        }
+    }
+
+    private void OnWonGame(List<string> battleReport)
+    {
+        if(_endlessMode)
+        {
+            OnEndlessModeWonGame(battleReport);
+        }
+        else
+        {
+            OnNormalModeWonGame(battleReport);
+        }
+
+    }
+
+    private void OnNormalModeWonGame(List<string> battleReport)
+    {
+        SaveManager.Instance.Delete();
+
+        battleReport.Add("Victory! You have purged all the evil from this land!");
+
+        UIManager.Instance.OpenMenu<MessageBoxData>(new(
+            battleReport.ToArray(),
+            () => UIManager.Instance.OpenMenu<MainMenuData>(new(false))
+        ));
+    }
+
+    private void OnEndlessModeWonGame(List<string> battleReport)
+    {
+        battleReport.Add("You have purged all the evil from this land!");
+        battleReport.Add("However since you've picked ENDLESS MODE you are doomed to fight for all eternity. Good luck!");
+
+        _loopCount++;
+        XpToNextLevel = StartXpToNextLevel;
+
+        _encounterTreeCurrentNode = _encounterTreeRoot;
 
         UIManager.Instance.OpenMenu<MessageBoxData>(
         new(
@@ -167,9 +234,53 @@ public class GameManager : SingletonPersistent<GameManager>
             ));
     }
 
+    public void SaveAndQuit()
+    {
+        HeroLevelsState levelState = new(
+            HeroAttackLevel,
+            HeroDefenseLevel,
+
+            HeroMagicLevel,
+            HeroHealthLevel,
+
+            HeroManaLevel);
+
+        GameState state = new(
+            XpToNextLevel,
+            LevelUpStatTokens,
+
+            Gold,
+
+            _encounterTreeCurrentNode.Encounter.Id,
+            _endlessMode, LoopCount,
+
+            _hero.CharacterInfo.Id,
+
+            HeroOwnedItems,
+            HeroLearnedMoves,
+
+            _hero.Items,
+            _hero.Moves,
+
+            levelState
+            );
+
+        SaveManager.Instance.Save(state);
+        GameEvents.InvokeSavedAndQuit();
+        OpenMainMenu();
+    }
+
+    public void OpenCharacterSelect(List<CharacterDto> heroes) => UIManager.Instance.OpenMenu<CharacterSelectMenuData>(new(heroes));
+
+    public void ChooseHeroAndStartGame(CharacterDto hero)
+    {
+        GameEvents.InvokeHeroSelected(hero);
+        StartEncounter(_encounterTreeRoot);
+    }
+
     public bool TryBuy(ItemDto item)
     {
-        if(item.Price > Gold) return false;
+        if(item == null || item.Price > Gold) return false;
 
         HeroOwnedItems.Add(item);
         Gold -= item.Price;
@@ -230,7 +341,7 @@ public class GameManager : SingletonPersistent<GameManager>
             var formerXpToNextLevel = XpToNextLevel;
             xp -= XpToNextLevel;
 
-            XpToNextLevel = formerXpToNextLevel * NextLevelThresholdMultiplier;
+            XpToNextLevel = (int)(formerXpToNextLevel * NextLevelThresholdMultiplier);
             LevelUpStatTokens++;
         }
 
@@ -287,31 +398,47 @@ public class GameManager : SingletonPersistent<GameManager>
         BattleEvents.InvokeTurnStarted();
     }
 
-    private IEnumerator StartNewGameRoutine()
+    private IEnumerator StartGameRoutine(bool endlessMode = false, bool newGame = true)
     {
-        XpToNextLevel = 10;
-        LevelUpStatTokens = 0;
-        Gold = 0;
+        GameState state = null;
 
-        HeroAttackLevel = 0;
-        HeroDefenseLevel = 0;
-        HeroMagicLevel = 0;
+        if(newGame)
+        {
+            SaveManager.Instance.Delete();
+            InitializeNewGameData(endlessMode);
+        }
+        else
+        {
+            state = SaveManager.Instance.Load();
+            InitializeSavedGameData(state);
 
-        HeroHealthLevel = 0;
-        HeroManaLevel = 0;
+        }
+
 
         yield return _network.GetHeroes();
         if(!_network.LastRequestSuccess) yield break;
 
-        var hero = _network.Heroes[1];
-        GameEvents.InvokeHeroSelected(hero);
+
 
         yield return _network.GetEncounterTree();
         if(!_network.LastRequestSuccess) yield break;
 
         _encounterTreeRoot = _network.EncounterTree;
 
-        StartEncounter(_encounterTreeRoot);
+        if(newGame)
+        {
+            OpenCharacterSelect(_network.Heroes);
+        }
+        else
+        {
+            var hero = _network.Heroes.First(hero => hero.Id == _chosenHeroId);
+            GameEvents.InvokeHeroSelected(hero);
+
+            FillHeroMovesAndItems(state);
+
+            _encounterTreeCurrentNode = FindNodeInTreeWithEncounterId(state.EncounterId);
+            GoToOverview();
+        }
     }
 
     public void SkipMove(string senderName, string moveName)
@@ -352,10 +479,82 @@ public class GameManager : SingletonPersistent<GameManager>
         GameEvents.InvokeEncounterSelected(encounterTreeCurrentNode.Encounter.Enemy);
 
         _bgController.ShowBackgroundFromDifficulty(encounterTreeCurrentNode.Encounter.Difficulty);
-        _bgController.PlayBGMusic();
+        _bgController.PlayBGMusic(encounterTreeCurrentNode.Encounter.Difficulty);
 
         _battleTurnState = TurnState.HERO;
         BattleEvents.InvokeBattleStarted();
+
+        if(encounterTreeCurrentNode.Encounter.Effect != null)
+            BattleEvents.InvokeGlobalEffectApplied(encounterTreeCurrentNode.Encounter.Effect);
+
+        _battleLog.Clear();
+    }
+
+    private void InitializeSavedGameData(GameState state)
+    {
+        XpToNextLevel = state.XpToNextLevelUp;
+        LevelUpStatTokens = state.LevelUpStatTokens;
+
+        Gold = state.Gold;
+
+        _loopCount = state.LoopCount;
+        _endlessMode = state.IsEndless;
+
+        HeroAttackLevel = state.HeroLevels.Attack;
+        HeroDefenseLevel = state.HeroLevels.Defense;
+        HeroMagicLevel = state.HeroLevels.Magic;
+
+        HeroHealthLevel = state.HeroLevels.Health;
+        HeroManaLevel = state.HeroLevels.Mana;
+
+        _chosenHeroId = state.HeroId;
+    }
+
+    private void FillHeroMovesAndItems(GameState state)
+    {
+        HeroLearnedMoves = state.LearnedMoves;
+        HeroOwnedItems = state.OwnedItems;
+
+        for(int i = 0; i < state.Items.Length; i++)
+            _hero.Items[i] = state.Items[i];
+
+        for(int i = 0; i < state.Moves.Length; i++)
+            _hero.Moves[i] = state.Moves[i];
+    }
+
+    private void InitializeNewGameData(bool endlessMode)
+    {
+        XpToNextLevel = StartXpToNextLevel;
+        LevelUpStatTokens = 0;
+
+        _loopCount = 1;
+        Gold = 0;
+
+        HeroAttackLevel = 0;
+        HeroDefenseLevel = 0;
+        HeroMagicLevel = 0;
+
+        HeroHealthLevel = 0;
+        HeroManaLevel = 0;
+
+        _endlessMode = endlessMode;
+    }
+
+    private EncounterTreeNodeDto FindNodeInTreeWithEncounterId(long encounterId) => FindNodeInTreeWithEncounterIdR(_encounterTreeRoot, encounterId);
+
+    private EncounterTreeNodeDto FindNodeInTreeWithEncounterIdR(EncounterTreeNodeDto root, long encounterId)
+    {
+        if(root == null) return null;
+
+        if(root.Encounter.Id == encounterId) return root;
+
+        EncounterTreeNodeDto left = FindNodeInTreeWithEncounterIdR(root.Left, encounterId);
+        EncounterTreeNodeDto right = FindNodeInTreeWithEncounterIdR(root.Right, encounterId);
+
+        if(left != null) return left;
+        if(right != null) return right;
+
+        return null;
     }
 
     private void OnEnable()

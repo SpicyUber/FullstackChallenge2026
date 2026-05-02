@@ -4,6 +4,7 @@ using UnityEngine;
 public class BackgroundVisibilityController : MonoBehaviour
 {
     [SerializeField] private GameObject _easyBG, _mediumBG, _hardBG;
+    [SerializeField] private AudioClip _normalMusic, _bossMusic;
     [SerializeField] private AudioSource _bgMusic;
 
     public void ShowBackgroundFromDifficulty(Difficulty difficulty)
@@ -24,7 +25,11 @@ public class BackgroundVisibilityController : MonoBehaviour
         }
     }
 
-    public void PlayBGMusic() => _bgMusic.Play();
+    public void PlayBGMusic(Difficulty difficulty = Difficulty.EASY)
+    {
+        _bgMusic.clip = (difficulty!=Difficulty.IMPOSSIBLE) ? _normalMusic : _bossMusic;
+        _bgMusic.Play();
+    }
 
     public void StopBGMusic() => _bgMusic.Stop();
 

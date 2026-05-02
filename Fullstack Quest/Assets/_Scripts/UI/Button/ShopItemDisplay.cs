@@ -1,5 +1,6 @@
 using Shared.DataTransferObjects;
 using System;
+using System.Linq;
 using TMPro;
 using TMPro.EditorUtilities;
 using UnityEngine;
@@ -22,8 +23,6 @@ public class ShopItemDisplay : MonoBehaviour, IClickHandler
 
     public void Handle()
     {
-        if(_item == null) return;
-
         if(GameManager.Instance.TryBuy(_item))
         {
             AudioSource.PlayClipAtPoint(_buySound, Camera.main.transform.position);
@@ -48,8 +47,7 @@ public class ShopItemDisplay : MonoBehaviour, IClickHandler
     {
         if(_item == null)
         {
-            _panel.color = new Color(_panel.color.r, _panel.color.g, _panel.color.b, 1);
-            _price.SetText("SOLD OUT");
+            SetToSoldOut();
             return;
         }
 
@@ -65,5 +63,17 @@ public class ShopItemDisplay : MonoBehaviour, IClickHandler
         _mana.SetText(_item.ManaDelta + "");
 
         _price.SetText("BUY (" + _item.Price + ")");
+
+        if(IsPurchased)
+            SetToSoldOut();
     }
+
+    private void SetToSoldOut()
+    {
+        _panel.color = new Color(_panel.color.r, _panel.color.g, _panel.color.b, 1);
+        _price.SetText("SOLD OUT");
+        _item = null;
+    }
+
+    private bool IsPurchased => GameManager.Instance.HeroOwnedItems.Any(item => item.Id == _item.Id);
 }
