@@ -28,8 +28,6 @@ public class StatsResourcesAndEffectsDisplay : MonoBehaviour, IHUDElement
             _hero.AppliedEffectTick += Refresh;
             _hero.HealthComponent.ResourceChanged += Refresh;
             _hero.ManaComponent.ResourceChanged += Refresh;
-            _hero.AppliedEffectTick += Refresh;
-
         }
 
         if(_monster)
@@ -37,10 +35,8 @@ public class StatsResourcesAndEffectsDisplay : MonoBehaviour, IHUDElement
             _monster.AppliedEffectTick += Refresh;
             _monster.HealthComponent.ResourceChanged += Refresh;
             _monster.ManaComponent.ResourceChanged += Refresh;
-            _monster.AppliedEffectTick += Refresh;
-
         }
-
+  
         BattleEvents.GlobalEffectApplied += RefreshAfterGlobalEffect;
     }
 
@@ -53,16 +49,13 @@ public class StatsResourcesAndEffectsDisplay : MonoBehaviour, IHUDElement
         {
             _hero.AppliedEffectTick += Refresh;
             _hero.HealthComponent.ResourceChanged += Refresh;
-            _hero.ManaComponent.ResourceChanged += Refresh;
-            _hero.AppliedEffectTick += Refresh;
-        }
+            _hero.ManaComponent.ResourceChanged += Refresh;        }
 
         if(_monster)
         {
             _monster.AppliedEffectTick += Refresh;
             _monster.HealthComponent.ResourceChanged += Refresh;
             _monster.ManaComponent.ResourceChanged += Refresh;
-            _monster.AppliedEffectTick += Refresh;
         }
 
         Refresh();
@@ -124,7 +117,6 @@ public class StatsResourcesAndEffectsDisplay : MonoBehaviour, IHUDElement
             _hero.AppliedEffectTick -= Refresh;
             _hero.HealthComponent.ResourceChanged -= Refresh;
             _hero.ManaComponent.ResourceChanged -= Refresh;
-            _hero.AppliedEffectTick -= Refresh;
         }
 
         if(_monster)
@@ -132,7 +124,6 @@ public class StatsResourcesAndEffectsDisplay : MonoBehaviour, IHUDElement
             _monster.AppliedEffectTick -= Refresh;
             _monster.HealthComponent.ResourceChanged -= Refresh;
             _monster.ManaComponent.ResourceChanged -= Refresh;
-            _monster.AppliedEffectTick -= Refresh;
         }
 
         BattleEvents.GlobalEffectApplied -= RefreshAfterGlobalEffect;
