@@ -40,6 +40,8 @@ public class HeroSelectCard : MonoBehaviour, IClickHandler
         + $"HP: {heroCharacter.Health} "
         + $"MP: {heroCharacter.Mana}");
 
+        _heroName.text = heroCharacter.Name;
+
         string names = "MOVES:\n";
 
         foreach(var move in _heroCharacter.Moves)
