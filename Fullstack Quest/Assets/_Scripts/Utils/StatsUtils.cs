@@ -5,11 +5,11 @@ using UnityEngine;
 
 public static class StatsUtils
 {
-    public const int AttackLevelScaling = 15;
-    public const int DefenseLevelScaling = 15;
-    public const int MagicLevelScaling = 15;
-    public const int HealthLevelScaling = 50;
-    public const int ManaLevelScaling = 50;
+    public const int AttackLevelScaling = 10;
+    public const int DefenseLevelScaling = 10;
+    public const int MagicLevelScaling = 10;
+    public const int HealthLevelScaling = 30;
+    public const int ManaLevelScaling = 30;
 
     public const int DefaultManaRegen = 5;
     public const int DefaultMinHealth = 1;
