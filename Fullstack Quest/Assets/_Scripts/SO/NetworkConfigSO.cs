@@ -10,7 +10,7 @@ public class NetworkConfigSO : ScriptableObject
     public string ApiPrefix => "/api";
 
     public string EncountersPrefix => "/encounters";
-    public string RecommendedMovePrefix = "/move";
+    public string RecommendedMovePrefix => "/move";
 
     public string ShopPrefix => "/shop";
     public string HeroesPrefix => "/heroes";
